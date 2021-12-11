@@ -3,6 +3,10 @@ using System.IO;
 
 namespace x0.Jester
 {
+    public interface IMembersAware
+    {
+    }
+
     public abstract class JesterConverter
     {
         public abstract bool IsFixedSize { get; }
