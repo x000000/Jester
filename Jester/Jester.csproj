@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <RootNamespace>x0.Jester</RootNamespace>
+        <LangVersion>7.1</LangVersion>
+        <Company>0x000000</Company>
+    </PropertyGroup>
+
+</Project>
