@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>x0.JesterTests</RootNamespace>
-        <LangVersion>7.1</LangVersion>
+        <LangVersion>8</LangVersion>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
