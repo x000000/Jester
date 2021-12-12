@@ -156,7 +156,9 @@ namespace x0.Jester
             foreach (var iface in FlattenType(type)) {
                 foreach (var entry in _customConverters) {
                     if (entry.Value.Type.IsAssignableFrom(iface)) {
-                        if (converter == null || _resolveConverter(converter, entry.Value)) {
+                        if (converter == null || (
+                            converter != entry.Value && typeId != entry.Key && _resolveConverter(converter, entry.Value)
+                        )) {
                             typeId    = entry.Key;
                             converter = entry.Value;
                         }
@@ -341,7 +343,7 @@ namespace x0.Jester
             for (var i = 0; i < list.Length; i++) {
                 var param = list[i];
 
-                var attr = param.GetCustomAttribute<JesterPropertyAttribute>();
+                var attr = param.GetCustomAttribute<JesterPropertyBindingAttribute>();
                 var type = param.ParameterType == typeof(DeserializationContext)
                     ? (allowContext
                         ? typeof(DeserializationContext)

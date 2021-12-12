@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -136,17 +137,10 @@ namespace x0.Jester
         }
 
         internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)
-        {
-            if (source != null) {
-                writer.Write(Encoding.UTF8.GetBytes((string) source));
-            }
-        }
+            => writer.Write(Encoding.UTF8.GetBytes((string) source));
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-        {
-            var len = reader.ReadInt32();
-            target = Encoding.UTF8.GetString(reader.ReadBytes(len));
-        }
+            => target = Encoding.UTF8.GetString(reader.ReadBytes(ctx.ObjectHeader.DataLength));
     }
 
 
@@ -159,14 +153,10 @@ namespace x0.Jester
         }
 
         internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)
-        {
-            throw new NotImplementedException();
-        }
+            => ctx.Serializer.WriteCollection(writer, (IEnumerable) source, type, ctx);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-        {
-            throw new NotImplementedException();
-        }
+            => ctx.Deserializer.ReadCollection(reader, ref target, type, ctx);
     }
 
     internal class ArrayConverter<T> : JesterConverter
@@ -178,14 +168,10 @@ namespace x0.Jester
         }
 
         internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)
-        {
-            throw new NotImplementedException();
-        }
+            => ctx.Serializer.WriteCollection(writer, (IEnumerable<T>) source, type, ctx);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-        {
-            throw new NotImplementedException();
-        }
+            => ctx.Deserializer.ReadCollection<T>(reader, ref target, type, ctx);
     }
 
     internal interface IDictionaryConverter
@@ -206,9 +192,7 @@ namespace x0.Jester
         }
 
         internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)
-        {
-            throw new NotImplementedException();
-        }
+            => ctx.Serializer.WriteDictionary(writer, (IDictionary) source, type, ctx);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
         {
@@ -228,9 +212,7 @@ namespace x0.Jester
         }
 
         internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)
-        {
-            throw new NotImplementedException();
-        }
+            => ctx.Serializer.WriteDictionary(writer, (IEnumerable<KeyValuePair<TK, TV>>) source, type, ctx);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
         {

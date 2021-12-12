@@ -21,6 +21,15 @@ namespace x0.Jester
     }
 
     [AttributeUsage(Parameter, AllowMultiple = false, Inherited = false)]
+    public class JesterPropertyBindingAttribute : Attribute
+    {
+        public string Name { get; }
+
+        public JesterPropertyBindingAttribute(string name)
+            => Name = name ?? throw new ArgumentNullException(nameof(name));
+    }
+
+    [AttributeUsage(Parameter, AllowMultiple = false, Inherited = false)]
     public class JesterItemsAttribute : Attribute
     {
     }
