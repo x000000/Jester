@@ -61,6 +61,9 @@ namespace x0.Jester
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TypeDescriptor GetTypeDescriptor(Type type) => _inspector.InspectType(type);
 
+        internal void WriteObject(BinaryWriter writer, object source, Type type, SerializationContext ctx)
+            => WriteObject(writer, source, type, GetTypeDescriptor(type), ctx);
+
         private void WriteObject(BinaryWriter writer, object source, Type type, TypeDescriptor descriptor, SerializationContext ctx)
         {
             if (descriptor.Converter != null) {
@@ -73,6 +76,9 @@ namespace x0.Jester
                 WriteObjectFields(writer, source, descriptor, ctx);
             }
         }
+
+        internal void WriteObjectFields(BinaryWriter writer, object source, SerializationContext ctx)
+            => WriteObjectFields(writer, source, GetTypeDescriptor(source.GetType()), ctx);
 
         private void WriteObjectFields(BinaryWriter writer, object source, TypeDescriptor descriptor, SerializationContext ctx)
         {
@@ -211,7 +217,7 @@ namespace x0.Jester
 
     public class SerializationContext
     {
-        public BinaryWriter Writer { get; }
+        internal BinaryWriter Writer { get; }
 
         internal Serializer Serializer { get; }
 
@@ -220,6 +226,15 @@ namespace x0.Jester
             Writer = writer;
             Serializer = serializer;
         }
+
+        public void Write<T>(T value)
+            => Serializer.WriteObject(Writer, value, value?.GetType() ?? typeof(T), this);
+
+        public void Write(object value, Type type)
+            => Serializer.WriteObject(Writer, value, type, this);
+
+        public void WriteFields(object value)
+            => Serializer.WriteObjectFields(Writer, value, this);
 
         public void WriteCString(string value)
         {

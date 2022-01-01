@@ -68,6 +68,12 @@ namespace x0.Jester
             header.ValueType = reader.ReadByte();
         }
 
+        internal void ReadObject(BinaryReader reader, ref object target, DeserializationContext ctx)
+        {
+            ReadObjectHeader(reader, ref ctx.ObjectHeader);
+            ReadObject(reader, ref target, target.GetType(), ctx);
+        }
+
         private void ReadObject(BinaryReader reader, ref object target, Type targetType, DeserializationContext ctx)
         {
             var stream    = reader.BaseStream;
@@ -282,6 +288,12 @@ namespace x0.Jester
         }
 
 
+        internal object ReadValue(BinaryReader reader, Type targetType, DeserializationContext ctx)
+        {
+            var dataType = _inspector.InspectType(targetType);
+            return ReadValue(reader, dataType.TypeId, targetType, ctx);
+        }
+
         private object ReadValue(BinaryReader reader, byte dataType, Type targetType, DeserializationContext ctx)
         {
             object value = null;
@@ -393,8 +405,7 @@ namespace x0.Jester
 
     public class DeserializationContext : IDisposable
     {
-        public BinaryReader Reader { get; }
-
+        internal BinaryReader Reader { get; }
         internal Deserializer Deserializer { get; }
         internal MemoryStream BufferStream { get; } = new MemoryStream(256);
         internal BinaryWriter BufferWriter { get; }
@@ -422,6 +433,15 @@ namespace x0.Jester
 
             return Encoding.UTF8.GetString(BufferStream.GetBuffer().AsSpan(0, (int) BufferStream.Length));
         }
+
+        public void Read<T>(ref T target)
+            => target = (T) Deserializer.ReadValue(Reader, typeof(T), this);
+
+        public void Read(ref object target, Type targetType)
+            => target = Deserializer.ReadValue(Reader, targetType, this);
+
+        public void ReadFields(ref object target)
+            => Deserializer.ReadObject(Reader, ref target, this);
 
         internal void PushProp(object name) => _path.Push(name);
 

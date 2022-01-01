@@ -28,6 +28,50 @@ namespace x0.JesterTests
         {
         }
 
+        public abstract class BaseEntity<T>
+        {
+            [JesterProperty(Read = false, Write = false)]
+            public readonly T ItemType;
+
+            protected BaseEntity(T itemType) => ItemType = itemType;
+        }
+
+        public class EntityA : BaseEntity<string>
+        {
+            public int IntField;
+
+            public EntityA(string itemType) : base(itemType)
+            {
+            }
+        }
+
+        public class EntityB : BaseEntity<string>
+        {
+            public long LongField;
+
+            public EntityB(string itemType) : base(itemType)
+            {
+            }
+        }
+
+        public class EntityC : BaseEntity<byte>
+        {
+            public int IntField;
+
+            public EntityC(byte itemType) : base(itemType)
+            {
+            }
+        }
+
+        public class EntityD : BaseEntity<byte>
+        {
+            public long LongField;
+
+            public EntityD(byte itemType) : base(itemType)
+            {
+            }
+        }
+
         public class SampleObject
         {
             public const string IntFieldName = "AltIntField";
@@ -83,6 +127,9 @@ namespace x0.JesterTests
             public CustomList<object>    CustomObjectList;
             public IList<object>         CustomObjectIList;
             public IReadOnlyList<object> CustomObjectRoList;
+
+            public Color CustomFixedConvObject;
+            public Path  CustomDynamicConvObject;
 
             public IntEnum   IntEnumField;
             public IntFlags  IntFlagsField;
@@ -178,6 +225,40 @@ namespace x0.JesterTests
             {
                 IntField = intFieldWithWrongName;
             }
+        }
+
+        public struct Color
+        {
+            public byte R;
+            public byte G;
+            public byte B;
+
+            public override string ToString() => $"#{R:X2}{G:X2}{B:X2}";
+        }
+
+        public class Path
+        {
+            public IEnumerable<string> Items { get; }
+
+            public Path(IEnumerable<string> items) => Items = new List<string>(items);
+
+            public override string ToString() => string.Join(' ', Items);
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) {
+                    return false;
+                }
+                if (ReferenceEquals(this, obj)) {
+                    return true;
+                }
+                if (obj.GetType() != GetType()) {
+                    return false;
+                }
+                return Equals(ToString(), obj.ToString());
+            }
+
+            public override int GetHashCode() => Items?.GetHashCode() ?? 0;
         }
 
         public enum ByteEnum : byte

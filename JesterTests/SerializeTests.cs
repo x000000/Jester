@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -11,6 +12,8 @@ using static x0.JesterTests.SerializeTestsSamples;
 
 namespace x0.JesterTests
 {
+    using Path = SerializeTestsSamples.Path;
+
     public class SerializeTests
     {
         private static DateTime Today => DateTime.Today.ToUniversalTime();
@@ -22,18 +25,94 @@ namespace x0.JesterTests
         [SetUp]
         public void Setup()
         {
-            _inspector = new TypeInspector(new SerializerSettings());
-            _serializer = new Serializer();
-            _deserializer = new Deserializer();
+            var settings = new SerializerSettings()
+                .AddConverter(new EntityConverter1())
+                .AddConverter(new EntityConverter2())
+                .AddConverter(new ColorConverter())
+                .AddConverter(new PathConverter());
+
+            _inspector    = new TypeInspector(settings);
+            _serializer   = new Serializer(settings);
+            _deserializer = new Deserializer(settings);
+        }
+
+        public static IEnumerable<object[]> TestSerializeSource()
+        {
+            var entityA = new EntityA("A") { IntField = 13 };
+            var entityB = new EntityB("B") { LongField = 69 };
+            var entityC = new EntityC(8)   { IntField = 51 };
+            var entityD = new EntityD(3)   { LongField = 96 };
+
+            yield return new object[] { CreateSampleData(), typeof(SampleDataObject) } ;
+            foreach (var type in new [] { typeof(object), null }) {
+                yield return new object[] {
+                    new Color { R = 16, G = 41, B = 189 },
+                    type ?? typeof(Color),
+                };
+                yield return new object[] {
+                    new Path(new [] { "M 0 0", "L 2 3" }),
+                    type ?? typeof(Path),
+                };
+
+                yield return new object[] {
+                    entityA,
+                    type ?? typeof(EntityA),
+                };
+                yield return new object[] {
+                    entityB,
+                    type ?? typeof(EntityB),
+                };
+                yield return new object[] {
+                    entityC,
+                    type ?? typeof(EntityC),
+                };
+                yield return new object[] {
+                    entityD,
+                    type ?? typeof(EntityD),
+                };
+                yield return new object[] {
+                    new BaseEntity<string>[] { entityA, entityB },
+                    type ?? typeof(BaseEntity<string>[]),
+                };
+                yield return new object[] {
+                    new BaseEntity<byte>[] { entityC, entityD },
+                    type ?? typeof(BaseEntity<byte>[]),
+                };
+                yield return new object[] {
+                    new int[] { 13, 69 },
+                    type ?? typeof(int[]),
+                };
+                yield return new object[] {
+                    new object[] { 19, 96 },
+                    type ?? typeof(object[]),
+                };
+                yield return new object[] {
+                    new object[] { 21, 88L },
+                    type ?? typeof(object[]),
+                };
+            }
+
+            yield return new object[] {
+                new object[] { entityA, entityB, entityC, entityD },
+                typeof(object),
+            };
         }
 
         [Test]
-        public void TestSerialize()
+        [TestCaseSource(nameof(TestSerializeSource))]
+        public void TestSerialize(object source, Type type)
         {
-            var source = CreateSampleData();
             var bytes  = _serializer.Serialize(source);
-            var target = _deserializer.Deserialize<SampleDataObject>(bytes);
-            AssertEquals(source, target, new ValuePath(typeof(SampleDataObject)));
+            var target = _deserializer.Deserialize(bytes, type);
+            AssertEquals(source, target, new ValuePath(type));
+
+            var collectionType = source.GetType()
+                .GetInterfaces()
+                .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+            if (collectionType != null) {
+                Assert.That(target, Is.AssignableTo(collectionType));
+            }
         }
 
         public static IEnumerable<object[]> TestSerializeWithInjectionSource()
@@ -465,6 +544,18 @@ namespace x0.JesterTests
                 CustomObjectIList  = new CustomList<object>(CreateMixedObjects()),
                 CustomObjectRoList = new CustomList<object>(CreateMixedObjects()),
 
+                CustomFixedConvObject = new Color {
+                    R = 13,
+                    G = 69,
+                    B = 222,
+                },
+                CustomDynamicConvObject = new Path(new [] {
+                    "M 50 0",
+                    "L 100 64",
+                    "L 0 64",
+                    "L 50 0",
+                }),
+
                 IntEnumField   = IntEnum.Two,
                 IntFlagsField  = IntFlags.Item1 | IntFlags.Item3,
 
@@ -589,6 +680,91 @@ namespace x0.JesterTests
             public Type PeekType() => _types.Peek();
 
             public override string ToString() => string.Join(".", _path.Reverse());
+        }
+
+
+        private class ColorConverter : JesterConverter<Color>
+        {
+            public override bool IsFixedSize => true;
+
+            public override void Write(BinaryWriter writer, Color source, Type type, SerializationContext ctx)
+            {
+                writer.Write(source.R);
+                writer.Write(source.G);
+                writer.Write(source.B);
+            }
+
+            public override void Read(BinaryReader reader, ref Color target, Type type, DeserializationContext ctx)
+            {
+                target = new Color {
+                    R = reader.ReadByte(),
+                    G = reader.ReadByte(),
+                    B = reader.ReadByte(),
+                };
+            }
+        }
+
+        private class PathConverter : JesterConverter<Path>
+        {
+            public override bool IsFixedSize => false;
+
+            public override void Write(BinaryWriter writer, Path source, Type type, SerializationContext ctx)
+                => ctx.Write(source.Items);
+
+            public override void Read(BinaryReader reader, ref Path target, Type type, DeserializationContext ctx)
+            {
+                IEnumerable<string> items = default;
+                ctx.Read(ref items);
+                target = new Path(items);
+            }
+        }
+
+        private class EntityConverter1 : JesterConverter<BaseEntity<string>>, IMembersAware
+        {
+            public override bool IsFixedSize => false;
+
+            public override void Write(BinaryWriter writer, BaseEntity<string> source, Type type, SerializationContext ctx)
+            {
+                ctx.WriteCString(source.ItemType);
+                ctx.WriteFields(source);
+            }
+
+            public override void Read(BinaryReader reader, ref BaseEntity<string> target, Type type, DeserializationContext ctx)
+            {
+                var itemType = ctx.ReadCString();
+                target = itemType switch {
+                    "A" => new EntityA(itemType),
+                    "B" => new EntityB(itemType),
+                    _ => throw new ArgumentOutOfRangeException(),
+                };
+
+                var targetObj = (object) target;
+                ctx.ReadFields(ref targetObj);
+            }
+        }
+
+        private class EntityConverter2 : JesterConverter<BaseEntity<byte>>, IMembersAware
+        {
+            public override bool IsFixedSize => false;
+
+            public override void Write(BinaryWriter writer, BaseEntity<byte> source, Type type, SerializationContext ctx)
+            {
+                writer.Write(source.ItemType);
+                ctx.WriteFields(source);
+            }
+
+            public override void Read(BinaryReader reader, ref BaseEntity<byte> target, Type type, DeserializationContext ctx)
+            {
+                var itemType = reader.ReadByte();
+                target = itemType switch {
+                    8 => new EntityC(itemType),
+                    3 => new EntityD(itemType),
+                    _ => throw new ArgumentOutOfRangeException(),
+                };
+
+                var targetObj = (object) target;
+                ctx.ReadFields(ref targetObj);
+            }
         }
     }
 }

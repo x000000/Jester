@@ -16,24 +16,24 @@ namespace x0.Jester
 
         private byte _converterIndex = (byte) (DataType.LastBuiltInType.Id + 1);
 
-        public void AddConverter<T>(JesterConverter<T> converter)
+        public SerializerSettings AddConverter<T>(JesterConverter<T> converter)
         {
             while (_converterIndex != 0) {
                 if (_converters.TryAdd(_converterIndex++, converter)) {
-                    return;
+                    return this;
                 }
             }
             throw new OverflowException("Maximum number of supported types has been reached");
         }
 
-        public void AddConverter<T>(JesterConverter<T> converter, byte typeId)
+        public SerializerSettings AddConverter<T>(JesterConverter<T> converter, byte typeId)
         {
             if (typeId <= DataType.LastBuiltInType.Id) {
                 throw new ArgumentOutOfRangeException($"Types 1-{DataType.LastBuiltInType.Id} are reserved");
             }
 
             if (_converters.TryAdd(typeId, converter)) {
-                return;
+                return this;
             }
 
             throw new OverflowException($"Type {typeId} is already defined");
