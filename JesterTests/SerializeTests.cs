@@ -36,6 +36,27 @@ namespace x0.JesterTests
             _deserializer = new Deserializer(settings);
         }
 
+        public static IEnumerable<object> TestRecursionSerializeSource()
+        {
+            var wrapper = new SimpleWrapper();
+
+            wrapper.ObjectField = wrapper;
+            yield return wrapper;
+
+            wrapper.ObjectField = new [] { wrapper };
+            yield return wrapper;
+
+            wrapper.ObjectField = new Dictionary<object, object> { ["item"] = wrapper };
+            yield return wrapper;
+        }
+
+        [Test]
+        public void TestRecursionSerialize([ValueSource(nameof(TestRecursionSerializeSource))] object source)
+        {
+            var ex = Assert.Throws<JesterWriteException>(() => _serializer.Serialize(source));
+            Assert.AreEqual("Data loop detected", ex.Message);
+        }
+
         public static IEnumerable<object[]> TestSerializeSource()
         {
             var entityA = new EntityA("A") { IntField = 13 };

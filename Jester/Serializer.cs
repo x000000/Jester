@@ -73,10 +73,18 @@ namespace x0.Jester
             }
             writer.Write(HasValue);
 
+            if (!ctx.LoopingSet.Add(source)) {
+                throw new JesterWriteException("Data loop detected");
+            }
+
             if (descriptor.Converter != null) {
                 WriteViaConverter(descriptor.Converter, writer, source, type, ctx);
             } else {
                 WriteObjectFields(writer, source, descriptor, ctx);
+            }
+
+            if (!ctx.LoopingSet.Remove(source)) {
+                throw new JesterWriteException("Serialization inconsistency: this is a bug");
             }
         }
 
@@ -211,6 +219,8 @@ namespace x0.Jester
         internal BinaryWriter Writer { get; }
 
         internal Serializer Serializer { get; }
+
+        internal HashSet<object> LoopingSet { get; } = new HashSet<object>();
 
         internal SerializationContext(BinaryWriter writer, Serializer serializer)
         {

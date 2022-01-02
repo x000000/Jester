@@ -254,6 +254,8 @@ namespace x0.JesterTests
             public ByteEnum?  NullableByteEnumField2 = ByteEnum.Second;
             public ByteFlags? NullableByteFlagsField1;
             public ByteFlags? NullableByteFlagsField2 = ByteFlags.Item1 | ByteFlags.Item4;
+
+            public object ObjectField;
         }
 
         [JesterSerialize(Serialize = JesterSerializeMembers.Explicit)]

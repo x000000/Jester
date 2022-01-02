@@ -10,6 +10,13 @@ namespace x0.Jester
         }
     }
 
+    public class JesterWriteException : JesterException
+    {
+        public JesterWriteException(string message, Exception innerException = null) : base(message, innerException)
+        {
+        }
+    }
+
     public class JesterAttributeException : JesterException
     {
         public JesterAttributeException(string message, Exception innerException = null) : base(message, innerException)
