@@ -234,6 +234,26 @@ namespace x0.JesterTests
             public string StringField = "pre-populated value";
             [JesterProperty(WriteDefaultValue = true)]
             public IEnumerable<int> ArrayField = Array.Empty<int>();
+
+            public int? NullableByteField = 28;
+            public int? NullableIntField = 55;
+            public long? NullableLongField;
+
+            public Color? NullableColorField1;
+            public Color? NullableColorField2 = new Color {
+                R = 1,
+                G = 11,
+                B = 111,
+            };
+
+            public IntEnum?   NullableIntEnumField1;
+            public IntEnum?   NullableIntEnumField2 = IntEnum.One;
+            public IntFlags?  NullableIntFlagsField1;
+            public IntFlags?  NullableIntFlagsField2 = IntFlags.Item2 | IntFlags.Item3;
+            public ByteEnum?  NullableByteEnumField1;
+            public ByteEnum?  NullableByteEnumField2 = ByteEnum.Second;
+            public ByteFlags? NullableByteFlagsField1;
+            public ByteFlags? NullableByteFlagsField2 = ByteFlags.Item1 | ByteFlags.Item4;
         }
 
         public struct Color

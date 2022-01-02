@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace x0.Jester
@@ -18,20 +19,26 @@ namespace x0.Jester
         bool IPrimitiveConverter.IsFixedSize => true;
 
         protected PrimitiveConverter() : base(typeof(T)) { }
-    }
 
-    internal class EnumConverter : PrimitiveConverter<Enum>
-    {
-        private readonly JesterConverter _converter;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsConvertNeeded<TFrom>(Type toType) where TFrom : struct
+        {
+            if (typeof(TFrom) == toType || typeof(TFrom?) == toType) {
+                return false;
+            }
+            return toType.IsGenericType && toType.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
 
-        public EnumConverter(JesterConverter underlyingConverter) => _converter = underlyingConverter;
-
-        internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)
-            => _converter.Write(writer, source, type, ctx);
-
-        internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => throw new JesterReadException($"Trying to read enum value via {nameof(EnumConverter)}, " +
-                                              "underlying type's converter should be used instead");
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static bool ResolveConversionType<TFrom>(Type toType, out Type enumType) where TFrom : struct
+        {
+            if (IsConvertNeeded<TFrom>(toType)) {
+                enumType = toType.GenericTypeArguments[0];
+                return true;
+            }
+            enumType = null;
+            return false;
+        }
     }
 
     internal class Int32Converter : PrimitiveConverter<int>
@@ -40,7 +47,12 @@ namespace x0.Jester
             => writer.Write((int) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadInt32();
+        {
+            target = reader.ReadInt32();
+            if (ResolveConversionType<int>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (int) target);
+            }
+        }
     }
 
     internal class UInt32Converter : PrimitiveConverter<uint>
@@ -49,7 +61,12 @@ namespace x0.Jester
             => writer.Write((uint) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadUInt32();
+        {
+            target = reader.ReadUInt32();
+            if (ResolveConversionType<uint>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (uint) target);
+            }
+        }
     }
 
     internal class Int64Converter : PrimitiveConverter<long>
@@ -58,7 +75,12 @@ namespace x0.Jester
             => writer.Write((long) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadInt64();
+        {
+            target = reader.ReadInt64();
+            if (ResolveConversionType<long>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (long) target);
+            }
+        }
     }
 
     internal class UInt64Converter : PrimitiveConverter<ulong>
@@ -67,7 +89,12 @@ namespace x0.Jester
             => writer.Write((ulong) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadUInt64();
+        {
+            target = reader.ReadUInt64();
+            if (ResolveConversionType<ulong>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (ulong) target);
+            }
+        }
     }
 
     internal class Int16Converter : PrimitiveConverter<short>
@@ -76,7 +103,12 @@ namespace x0.Jester
             => writer.Write((short) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadInt16();
+        {
+            target = reader.ReadInt16();
+            if (ResolveConversionType<short>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (short) target);
+            }
+        }
     }
 
     internal class UInt16Converter : PrimitiveConverter<ushort>
@@ -85,7 +117,12 @@ namespace x0.Jester
             => writer.Write((ushort) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadUInt16();
+        {
+            target = reader.ReadUInt16();
+            if (ResolveConversionType<ushort>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (ushort) target);
+            }
+        }
     }
 
     internal class Int8Converter : PrimitiveConverter<sbyte>
@@ -94,7 +131,12 @@ namespace x0.Jester
             => writer.Write((sbyte) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadSByte();
+        {
+            target = reader.ReadSByte();
+            if (ResolveConversionType<sbyte>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (sbyte) target);
+            }
+        }
     }
 
     internal class UInt8Converter : PrimitiveConverter<byte>
@@ -103,7 +145,12 @@ namespace x0.Jester
             => writer.Write((byte) source);
 
         internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
-            => target = reader.ReadByte();
+        {
+            target = reader.ReadByte();
+            if (ResolveConversionType<byte>(type, out var enumType)) {
+                target = Enum.ToObject(enumType, (byte) target);
+            }
+        }
     }
 
     internal class Float32Converter : PrimitiveConverter<float>

@@ -122,11 +122,32 @@ namespace x0.JesterTests
                 IntField    = 69,
                 StringField = null,
                 ArrayField  = null,
+                NullableIntField        = null,
+                NullableIntEnumField2   = null,
+                NullableIntFlagsField2  = null,
+                NullableByteEnumField2  = null,
+                NullableByteFlagsField2 = null,
             };
             var type   = knownType ? source.GetType() : typeof(object);
             var bytes  = _serializer.Serialize(source);
             var target = _deserializer.Deserialize(bytes, type);
             AssertEquals(knownType ? source : (object) ObjectToDict(source), target, new ValuePath(type));
+        }
+
+        [Test]
+        public void TestNullableEnums()
+        {
+            var source = new SimpleWrapper {
+                NullableIntEnumField1   = IntEnum.Two,
+                NullableIntFlagsField1  = IntFlags.Item1 | IntFlags.Item4,
+                NullableByteEnumField1  = ByteEnum.None,
+                NullableByteFlagsField1 = ByteFlags.Item2 | ByteFlags.Item4,
+            };
+
+            var type   = source.GetType();
+            var bytes  = _serializer.Serialize(source);
+            var target = _deserializer.Deserialize(bytes, type);
+            AssertEquals(source, target, new ValuePath(type));
         }
 
         public static IEnumerable<object[]> TestSerializeWithInjectionSource()

@@ -513,9 +513,10 @@ namespace x0.Jester
             Name = attr?.Name ?? name;
             Type = attr?.WriteAs;
 
-            WriteDefaultValue = attr?.WriteDefaultValue == true;
+            var nullableType = type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+            WriteDefaultValue = attr?.WriteDefaultValue == true || nullableType;
 
-            if (WriteDefaultValue && type.IsValueType) {
+            if (WriteDefaultValue && type.IsValueType && !nullableType) {
                 DefaultValue = Activator.CreateInstance(type);
             }
         }
