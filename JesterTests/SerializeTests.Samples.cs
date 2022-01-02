@@ -256,6 +256,14 @@ namespace x0.JesterTests
             public ByteFlags? NullableByteFlagsField2 = ByteFlags.Item1 | ByteFlags.Item4;
         }
 
+        [JesterSerialize(Serialize = JesterSerializeMembers.Explicit)]
+        public class ExplicitFieldsSample
+        {
+            public int IntField;
+            [JesterProperty]
+            public long LongField;
+        }
+
         public struct Color
         {
             public byte R;

@@ -150,6 +150,21 @@ namespace x0.JesterTests
             AssertEquals(source, target, new ValuePath(type));
         }
 
+        [Test]
+        public void TestExplicitSerialization()
+        {
+            var source = new ExplicitFieldsSample {
+                IntField  = 13,
+                LongField = 69,
+            };
+            var bytes  = _serializer.Serialize(source);
+            var target = _deserializer.Deserialize<ExplicitFieldsSample>(bytes);
+
+            Assert.AreEqual(default(int), target.IntField);
+            source.IntField = default;
+            AssertEquals(source, target, new ValuePath(source.GetType()));
+        }
+
         public static IEnumerable<object[]> TestSerializeWithInjectionSource()
         {
             yield return new object[] {

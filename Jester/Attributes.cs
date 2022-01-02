@@ -53,7 +53,7 @@ namespace x0.Jester
     [Flags]
     public enum JesterSerializeMembers
     {
-        None       = 0,
+        Explicit   = 0,
         Fields     = 1,
         Properties = 2,
         All        = Fields | Properties,
