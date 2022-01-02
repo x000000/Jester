@@ -6,6 +6,9 @@ namespace x0.Jester
 {
     public sealed class DataType
     {
+        public const byte NoValue  = 0;
+        public const byte HasValue = 1;
+
         public readonly byte Id;
         public readonly int Size;
 

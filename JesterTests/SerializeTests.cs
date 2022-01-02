@@ -115,6 +115,20 @@ namespace x0.JesterTests
             }
         }
 
+        [Test]
+        public void TestDefaultValueReset([Values] bool knownType)
+        {
+            var source = new SimpleWrapper {
+                IntField    = 69,
+                StringField = null,
+                ArrayField  = null,
+            };
+            var type   = knownType ? source.GetType() : typeof(object);
+            var bytes  = _serializer.Serialize(source);
+            var target = _deserializer.Deserialize(bytes, type);
+            AssertEquals(knownType ? source : (object) ObjectToDict(source), target, new ValuePath(type));
+        }
+
         public static IEnumerable<object[]> TestSerializeWithInjectionSource()
         {
             yield return new object[] {
@@ -356,16 +370,20 @@ namespace x0.JesterTests
             var dict = new Dictionary<string, object>();
             foreach (var member in _inspector.GetTypeFields(source.GetType())) {
                 var value = member.Get(source);
-                if (value != null) {
-                    dict.Add(member.Name, value);
+                if (!member.WriteDefaultValue && value == member.DefaultValue) {
+                    continue;
                 }
+                dict.Add(member.Name, value);
             }
             return dict;
         }
 
         private void AssertEquals<T>(T source, T target, ValuePath path)
         {
-            if (source is IComparable || source is IEnumerable) {
+            if (source == null) {
+                Assert.Null(target);
+            }
+            else if (source is IComparable || source is IEnumerable) {
                 AssertValue(source, target, path);
             }
             else {

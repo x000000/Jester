@@ -227,6 +227,15 @@ namespace x0.JesterTests
             }
         }
 
+        public class SimpleWrapper
+        {
+            public int IntField = 13;
+            [JesterProperty(WriteDefaultValue = true)]
+            public string StringField = "pre-populated value";
+            [JesterProperty(WriteDefaultValue = true)]
+            public IEnumerable<int> ArrayField = Array.Empty<int>();
+        }
+
         public struct Color
         {
             public byte R;

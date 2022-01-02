@@ -165,39 +165,35 @@ namespace x0.Jester
             var stream   = reader.BaseStream;
             var itemType = reader.ReadByte();
 
-            if (itemType == byte.MaxValue) {
-                target = null;
-            } else {
-                if (itemType != 0) {
-                    if (!_inspector.TryGetConverter(itemType, out var conv)) {
-                        throw new JesterReadException($"Unexpected collection item type 0x{itemType:X2} at {stream.Position}");
-                    }
-
-                    var targetType = collectionType == typeof(object) ? typeof(List<>).MakeGenericType(conv.Type) : collectionType;
-                    var factory = _inspector.GetInstanceFactory(targetType) as ICollectionInstanceFactory
-                        ?? throw new JesterReadException("Unexpected instance factory type");
-
-                    IEnumerable list;
-                    if (conv is IPrimitiveConverter) {
-                        list = ReadTypedCollection<object>(conv, stream, reader, arrayEnd, ctx);
-                    } else {
-                        if (!_readDynamicCollectionMethods.TryGetValue(conv.Type, out var method)) {
-                            method = ReadDynamicCollectionMethod.MakeGenericMethod(conv.Type);
-                            _readDynamicCollectionMethods.Add(conv.Type, method);
-                        }
-
-                        list = (IEnumerable) method.Invoke(this, new object[] { stream, reader, arrayEnd, ctx });
-                    }
-
-                    target = factory.Create(list, reader, ctx);
-                } else {
-                    var targetType = collectionType == typeof(object) ? typeof(List<object>) : collectionType;
-                    var factory = _inspector.GetInstanceFactory(targetType) as ICollectionInstanceFactory
-                        ?? throw new JesterReadException("Unexpected instance factory type");
-
-                    var list = ReadDynamicCollection<object>(stream, reader, arrayEnd, ctx);
-                    target = factory.Create(list, reader, ctx);
+            if (itemType != 0) {
+                if (!_inspector.TryGetConverter(itemType, out var conv)) {
+                    throw new JesterReadException($"Unexpected collection item type 0x{itemType:X2} at {stream.Position}");
                 }
+
+                var targetType = collectionType == typeof(object) ? typeof(List<>).MakeGenericType(conv.Type) : collectionType;
+                var factory = _inspector.GetInstanceFactory(targetType) as ICollectionInstanceFactory
+                    ?? throw new JesterReadException("Unexpected instance factory type");
+
+                IEnumerable list;
+                if (conv is IPrimitiveConverter) {
+                    list = ReadTypedCollection<object>(conv, stream, reader, arrayEnd, ctx);
+                } else {
+                    if (!_readDynamicCollectionMethods.TryGetValue(conv.Type, out var method)) {
+                        method = ReadDynamicCollectionMethod.MakeGenericMethod(conv.Type);
+                        _readDynamicCollectionMethods.Add(conv.Type, method);
+                    }
+
+                    list = (IEnumerable) method.Invoke(this, new object[] { stream, reader, arrayEnd, ctx });
+                }
+
+                target = factory.Create(list, reader, ctx);
+            } else {
+                var targetType = collectionType == typeof(object) ? typeof(List<object>) : collectionType;
+                var factory = _inspector.GetInstanceFactory(targetType) as ICollectionInstanceFactory
+                    ?? throw new JesterReadException("Unexpected instance factory type");
+
+                var list = ReadDynamicCollection<object>(stream, reader, arrayEnd, ctx);
+                target = factory.Create(list, reader, ctx);
             }
 
             EnsureObjectEnd(stream, arrayEnd);
@@ -209,9 +205,7 @@ namespace x0.Jester
             var stream   = reader.BaseStream;
             var itemType = reader.ReadByte();
 
-            if (itemType == byte.MaxValue) {
-                target = null;
-            } else if (itemType != 0) {
+            if (itemType != 0) {
                 if (!_inspector.TryGetConverter(itemType, out var conv)) {
                     throw new JesterReadException($"Unexpected collection item type 0x{itemType:X2} at {stream.Position}");
                 }
@@ -296,6 +290,10 @@ namespace x0.Jester
 
         private object ReadValue(BinaryReader reader, byte dataType, Type targetType, DeserializationContext ctx)
         {
+            if (reader.ReadByte() == DataType.NoValue) {
+                return targetType.IsValueType ? Activator.CreateInstance(targetType) : null;
+            }
+
             object value = null;
 
             if (_inspector.TryGetConverter(dataType, out var converter)) {

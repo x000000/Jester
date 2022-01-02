@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using static x0.Jester.DataType;
 
 namespace x0.Jester
 {
@@ -66,13 +67,15 @@ namespace x0.Jester
 
         private void WriteObject(BinaryWriter writer, object source, Type type, TypeDescriptor descriptor, SerializationContext ctx)
         {
+            if (source == null) {
+                writer.Write(NoValue);
+                return;
+            }
+            writer.Write(HasValue);
+
             if (descriptor.Converter != null) {
                 WriteViaConverter(descriptor.Converter, writer, source, type, ctx);
-            }
-            else if (source == null) {
-                writer.Write((int) 0);
-            }
-            else {
+            } else {
                 WriteObjectFields(writer, source, descriptor, ctx);
             }
         }
@@ -91,7 +94,7 @@ namespace x0.Jester
 
             foreach (var member in descriptor.Members) {
                 var value = member.Get(source);
-                if (value == null) {
+                if (!member.WriteDefaultValue && value == member.DefaultValue) {
                     continue;
                 }
 
@@ -157,12 +160,6 @@ namespace x0.Jester
 
         internal void WriteCollection(BinaryWriter writer, IEnumerable source, Type collectionType, SerializationContext ctx)
         {
-            // that's a bad solution to distinct between empty and null collection, but enough for current needs
-            if (source == null) {
-                writer.Write(byte.MaxValue);
-                return;
-            }
-
             writer.Write((byte) 0);
 
             foreach (var item in source) {
@@ -172,12 +169,6 @@ namespace x0.Jester
 
         internal void WriteCollection<T>(BinaryWriter writer, IEnumerable<T> source, Type collectionType, SerializationContext ctx)
         {
-            // that's a bad solution to distinct between empty and null collection, but enough for current needs
-            if (source == null) {
-                writer.Write(byte.MaxValue);
-                return;
-            }
-
             var itemDesc = GetTypeDescriptor(typeof(T));
             writer.Write(itemDesc.TypeId);
 

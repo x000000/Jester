@@ -487,6 +487,9 @@ namespace x0.Jester
         Type MemberType { get; }
         Type Type { get; }
 
+        bool WriteDefaultValue { get; }
+        object DefaultValue { get; }
+
         object Get(object source);
         void Set(object target, object val);
     }
@@ -499,6 +502,9 @@ namespace x0.Jester
         public Type MemberType { get; }
         public Type Type { get; }
 
+        public bool WriteDefaultValue { get; }
+        public object DefaultValue { get; }
+
         protected MemberDescriptor(string name, Type type, JesterPropertyAttribute attr)
         {
             MemberType = type;
@@ -506,6 +512,12 @@ namespace x0.Jester
 
             Name = attr?.Name ?? name;
             Type = attr?.WriteAs;
+
+            WriteDefaultValue = attr?.WriteDefaultValue == true;
+
+            if (WriteDefaultValue && type.IsValueType) {
+                DefaultValue = Activator.CreateInstance(type);
+            }
         }
 
         public abstract object Get(object source);
@@ -545,6 +557,9 @@ namespace x0.Jester
 
         public Type MemberType => _underlyingMember.MemberType;
         public Type Type       => _underlyingMember.Type;
+
+        public bool WriteDefaultValue => _underlyingMember.WriteDefaultValue;
+        public object DefaultValue    => _underlyingMember.DefaultValue;
 
         private readonly IMemberDescriptor _underlyingMember;
 

@@ -18,6 +18,7 @@ namespace x0.Jester
         public bool Write { get; set; } = true;
         public bool Ignore => !Read && !Write;
         public Type WriteAs { get; set; }
+        public bool WriteDefaultValue { get; set; } = false;
     }
 
     [AttributeUsage(Parameter, AllowMultiple = false, Inherited = false)]
