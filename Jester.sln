@@ -8,15 +8,25 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Unity Debug|Any CPU = Unity Debug|Any CPU
+		Unity Release|Any CPU = Unity Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Unity Debug|Any CPU.ActiveCfg = Unity Debug|Any CPU
+		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Unity Debug|Any CPU.Build.0 = Unity Debug|Any CPU
+		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Unity Release|Any CPU.ActiveCfg = Unity Release|Any CPU
+		{DC37EDB0-399F-4426-91EB-80FA3F042F7F}.Unity Release|Any CPU.Build.0 = Unity Release|Any CPU
 		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Unity Debug|Any CPU.ActiveCfg = Unity Debug|Any CPU
+		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Unity Debug|Any CPU.Build.0 = Unity Debug|Any CPU
+		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Unity Release|Any CPU.ActiveCfg = Unity Release|Any CPU
+		{807BCBE4-A251-4FF8-9973-2D1AE7092EF9}.Unity Release|Any CPU.Build.0 = Unity Release|Any CPU
 	EndGlobalSection
 EndGlobal

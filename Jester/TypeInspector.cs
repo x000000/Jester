@@ -45,7 +45,12 @@ namespace x0.Jester
         {
             _serializeFilter  = settings.SerializeFilter;
             _resolveConverter = settings.ConverterResolver ?? ThrowingConverterResolver;
-            _customConverters = new Dictionary<byte, JesterConverter>(settings.Converters);
+            _customConverters = new Dictionary<byte, JesterConverter>(
+#if UNITY_2020_1_OR_NEWER
+                (IDictionary<byte, JesterConverter>)
+#endif
+                settings.Converters
+            );
         }
 
         private bool ThrowingConverterResolver(JesterConverter a, JesterConverter b)
@@ -255,12 +260,14 @@ namespace x0.Jester
 
                 MethodInfo factory = null;
                 Type factoryType = null;
-                foreach (var (returnType, (method, isExplicit, reqItems)) in factories) {
+                foreach (var entry in factories) {
+                    var (method, isExplicit, reqItems) = entry.Value;
+
                     if (!isExplicit && type.IsAssignableFrom(method.ReturnType)) {
                         factory = factory == null
                             ? method
                             : throw new JesterAttributeException($"Multiple factory methods found for type {type}");
-                        factoryType  = returnType;
+                        factoryType  = entry.Key;
                         requireItems = reqItems;
                     }
                 }

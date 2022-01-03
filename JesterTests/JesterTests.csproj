@@ -5,6 +5,20 @@
         <RootNamespace>x0.JesterTests</RootNamespace>
         <LangVersion>8</LangVersion>
         <IsPackable>false</IsPackable>
+        <Configurations>Debug;Release;Unity Debug;Unity Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Unity Debug' ">
+      <DebugSymbols Condition=" '$(DebugSymbols)' == '' ">true</DebugSymbols>
+      <Optimize Condition=" '$(Optimize)' == '' ">false</Optimize>
+      <DefineConstants>TRACE;UNITY_2020_1_OR_NEWER;</DefineConstants>
+      <DebugSymbols>true</DebugSymbols>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Unity Release' ">
+      <Optimize Condition=" '$(Optimize)' == '' ">true</Optimize>
+      <DefineConstants>TRACE;UNITY_2020_1_OR_NEWER;</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>

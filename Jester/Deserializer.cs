@@ -429,7 +429,11 @@ namespace x0.Jester
                 BufferWriter.Write(readByte);
             }
 
+#if UNITY_2020_1_OR_NEWER
+            return Encoding.UTF8.GetString(BufferStream.GetBuffer(), 0, (int) BufferStream.Length);
+#else
             return Encoding.UTF8.GetString(BufferStream.GetBuffer().AsSpan(0, (int) BufferStream.Length));
+#endif
         }
 
         public void Read<T>(ref T target)
