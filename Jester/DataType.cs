@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -71,8 +72,21 @@ namespace x0.Jester
             new TypeDescriptor(DataType.DateTime.Id, new DateTimeConverter()),
         }.ToDictionary(o => o.TypeId);
 
+        private static readonly Dictionary<Type, TypeDescriptor> EnumTypes = new[] {
+            Types[DataType.Int8.Id],
+            Types[DataType.UInt8.Id],
+            Types[DataType.Int16.Id],
+            Types[DataType.UInt16.Id],
+            Types[DataType.Int32.Id],
+            Types[DataType.UInt32.Id],
+            Types[DataType.Int64.Id],
+            Types[DataType.UInt64.Id],
+        }.ToDictionary(d => d.Converter.Type);
+
         public static IEnumerable<TypeDescriptor> List => Types.Values;
 
         public static bool TryGet(byte typeId, out TypeDescriptor desc) => Types.TryGetValue(typeId, out desc);
+
+        public static TypeDescriptor GetEnum(Type underlyingType) => EnumTypes[underlyingType];
     }
 }

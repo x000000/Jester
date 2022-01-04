@@ -20,6 +20,20 @@ namespace x0.Jester
         protected PrimitiveConverter() : base(typeof(T)) { }
     }
 
+    internal class EnumConverter : PrimitiveConverter<Enum>
+    {
+        private readonly JesterConverter _converter;
+
+        public EnumConverter(JesterConverter underlyingConverter) => _converter = underlyingConverter;
+
+        internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)
+            => _converter.Write(writer, source, type, ctx);
+
+        internal override void Read(BinaryReader reader, ref object target, Type type, DeserializationContext ctx)
+            => throw new JesterReadException($"Trying to read enum value via {nameof(EnumConverter)}, " +
+                                              "underlying type's converter should be used instead");
+    }
+
     internal class Int32Converter : PrimitiveConverter<int>
     {
         internal override void Write(BinaryWriter writer, object source, Type type, SerializationContext ctx)

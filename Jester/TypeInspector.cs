@@ -146,6 +146,9 @@ namespace x0.Jester
             if (type.IsPrimitive) {
                 throw new ArgumentOutOfRangeException($"Unexpected value type: {type}");
             }
+            if (type.IsEnum) {
+                return BuiltinTypes.GetEnum(type.GetEnumUnderlyingType());
+            }
 
             Type dictType1 = null;
             Type dictType2 = null;
