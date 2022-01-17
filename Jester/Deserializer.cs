@@ -28,17 +28,24 @@ namespace x0.Jester
 
         public T Deserialize<T>(byte[] encodedData) => (T) Deserialize(encodedData, typeof(T));
 
+        public T Deserialize<T>(Stream stream, bool leaveOpen = false) => (T) Deserialize(stream, typeof(T), leaveOpen);
+
         public object Deserialize(byte[] encodedData, Type targetType)
         {
             using (var stream = new MemoryStream(encodedData, false)) {
-                using (var reader = new BinaryReader(stream, Encoding.UTF8, false)) {
-                    if (Version != reader.ReadByte()) {
-                        throw new ArgumentException("Version mismatch");
-                    }
+                return Deserialize(stream, targetType);
+            }
+        }
 
-                    var ctx = new DeserializationContext(reader, this);
-                    return ReadValue(reader, reader.ReadByte(), targetType, ctx);
+        public object Deserialize(Stream stream, Type targetType, bool leaveOpen = false)
+        {
+            using (var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen)) {
+                if (Version != reader.ReadByte()) {
+                    throw new ArgumentException("Version mismatch");
                 }
+
+                var ctx = new DeserializationContext(reader, this);
+                return ReadValue(reader, reader.ReadByte(), targetType, ctx);
             }
         }
 
