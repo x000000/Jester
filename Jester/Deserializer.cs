@@ -410,6 +410,9 @@ namespace x0.Jester
 
     public class DeserializationContext : IDisposable
     {
+        public int  DataLength => ObjectHeader.DataLength;
+        public long DataEnd    => ObjectHeader.ObjectEnd;
+
         internal BinaryReader Reader { get; }
         internal Deserializer Deserializer { get; }
         internal MemoryStream BufferStream { get; } = new MemoryStream(256);
